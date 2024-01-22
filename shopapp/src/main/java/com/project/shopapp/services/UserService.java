@@ -44,11 +44,12 @@ public class UserService implements IUserService {
         }
         newUser.setRole(role);
 
-        return null;
+        return userRepository.save(newUser);
     }
 
     @Override
-    public String login(UserDTO userDTO) {
+    public String login(String phoneNumber, String password) {
         return null;
     }
+
 }

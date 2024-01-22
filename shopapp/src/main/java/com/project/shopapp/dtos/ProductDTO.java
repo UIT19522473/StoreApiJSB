@@ -3,6 +3,7 @@ package com.project.shopapp.dtos;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -25,9 +26,9 @@ public class ProductDTO {
 
     private String description;
 
+//    @JsonProperty("category_id")
     @NotNull(message = "Category Id is required")
-    @JsonProperty("category_id")
-    private String category_id;
+    private Long categoryId;
 
     private List<MultipartFile> files;
 }

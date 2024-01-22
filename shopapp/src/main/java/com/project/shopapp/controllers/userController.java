@@ -2,7 +2,9 @@ package com.project.shopapp.controllers;
 
 import com.project.shopapp.dtos.UserDTO;
 import com.project.shopapp.dtos.UserLoginDTO;
+import com.project.shopapp.services.IUserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -15,7 +17,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/users")
+@RequiredArgsConstructor
 public class userController {
+
+    private final IUserService userService;
+
     @PostMapping("/register")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO userDTO, BindingResult result) {
 
@@ -23,10 +29,11 @@ public class userController {
             List<String> errorMessages = result.getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
             return ResponseEntity.badRequest().body(errorMessages);
         }
-        if(!userDTO.getPassword().equals(userDTO.getRetypePassword())){
+        if (!userDTO.getPassword().equals(userDTO.getRetypePassword())) {
             return ResponseEntity.badRequest().body("Retype password does not match");
         }
         try {
+            userService.createUser(userDTO);
             return ResponseEntity.ok("Register successfully" + userDTO.toString());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -39,6 +46,14 @@ public class userController {
             List<String> errorMessages = result.getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
             return ResponseEntity.badRequest().body(errorMessages);
         }
-        return ResponseEntity.ok("Login successfully" + userLoginDTO.toString());
+
+        try {
+            String token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
+
+            return ResponseEntity.ok("Login successfully" + userLoginDTO.toString());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Login is failed" + e.getMessage());
+        }
     }
+
 }

@@ -2,8 +2,13 @@ package com.project.shopapp.controllers;
 
 import com.project.shopapp.dtos.CategoryDTO;
 import com.project.shopapp.dtos.ProductDTO;
+import com.project.shopapp.dtos.ProductImageDTO;
 import com.project.shopapp.dtos.TestDTO;
+import com.project.shopapp.models.Product;
+import com.project.shopapp.models.ProductImage;
+import com.project.shopapp.services.IProductService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,19 +29,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/products")
+@RequiredArgsConstructor
 public class productController {
-    @GetMapping("")
-    public ResponseEntity<String> getAllProducts(@RequestParam int page, @RequestParam int limit) {
-        return ResponseEntity.ok("Get:..." + page + "--" + limit);
-    }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<String> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok("Get product by id:..." + id);
-    }
+    private final IProductService productService;
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createProduct(@Valid @ModelAttribute ProductDTO product, BindingResult result) {
+    public ResponseEntity<?> createProduct(@Valid @ModelAttribute ProductDTO productDTO, @RequestParam("file") List<MultipartFile> fileUp, BindingResult result) {
         try {
 
             if (result.hasErrors()) {
@@ -44,7 +43,10 @@ public class productController {
                 return ResponseEntity.badRequest().body(errorMessages);
             }
 
-            List<MultipartFile> files = product.getFiles();
+            Product newProduct = productService.createProduct(productDTO);
+
+//            List<MultipartFile> files = product.getFiles();
+            List<MultipartFile> files = fileUp;
             files = files == null ? new ArrayList<MultipartFile>() : files;
 
             for (MultipartFile file : files) {
@@ -65,11 +67,15 @@ public class productController {
                 }
 
                 String filename = storeFile(file);
-                //luu vao product trong DB => lam sau
-
+                //luu vao product trong DB
+                ProductImage newProductImage = productService.createProductImage(newProduct.getId(), ProductImageDTO.builder()
+                        .productId(newProduct)
+                        .imageUrl(filename)
+                        .build());
             }
 
-            return ResponseEntity.ok("Post:...");
+
+            return ResponseEntity.ok("Post:..." + newProduct);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -93,6 +99,18 @@ public class productController {
         Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
         return uniqueFilename;
     }
+
+
+    @GetMapping("")
+    public ResponseEntity<String> getAllProducts(@RequestParam int page, @RequestParam int limit) {
+        return ResponseEntity.ok("Get:..." + page + "--" + limit);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<String> getProductById(@PathVariable Long id) {
+        return ResponseEntity.ok("Get product by id:..." + id);
+    }
+
 
     //insert product
     @PutMapping("/{id}")
