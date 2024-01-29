@@ -7,6 +7,7 @@ import com.project.shopapp.models.ProductImage;
 import com.project.shopapp.repositories.ProductImageRepository;
 import com.project.shopapp.repositories.ProductRepository;
 import com.project.shopapp.repositories.CategoryRepository;
+import com.project.shopapp.response.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,24 +50,52 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public Page<Product> getAllProducts(PageRequest pageRequest) {
-        return productRepository.findAll(pageRequest);
+    public Page<ProductResponse> getAllProducts(PageRequest pageRequest) {
+        //            ProductResponse productResponse = ProductResponse.builder()
+        //                    .id(product.getId())
+        //                    .name(product.getName())
+        //                    .price(product.getPrice())
+        //                    .thumbnail(product.getThumbnail())
+        //                    .description(product.getDescription())
+        //                    .categoryId(product.getCategoryId().getId())
+        //                    .build();
+        //
+        //            productResponse.setCreatedAt(product.getCreatedAt());
+        //            productResponse.setUpdatedAt(product.getUpdatedAt());
+        //            return productResponse;
+
+        return productRepository.findAll(pageRequest).map(ProductResponse::fromProduct);
     }
 
     @Override
     public Product updateProduct(Long id, ProductDTO productDTO) throws DataNotFoundException {
         Product existingProduct = getProductById(id);
         if (existingProduct != null) {
-            Category existingCategory = categoryRepository.findById(productDTO.getCategoryId())
+            Category existingCategory = categoryRepository.findById(id)
                     .orElseThrow(() -> new DataNotFoundException(
                             "Cannot find category with id: " + productDTO.getCategoryId()
                     ));
 
-            existingProduct.setName(productDTO.getName());
-            existingProduct.setCategoryId(existingCategory);
-            existingProduct.setPrice(productDTO.getPrice());
-            existingProduct.setDescription(productDTO.getDescription());
-            existingProduct.setThumbnail(productDTO.getThumbnail());
+            // Update only the properties that are present in the productDTO
+            if (productDTO.getName() != null) {
+                existingProduct.setName(productDTO.getName());
+            }
+
+            if (productDTO.getCategoryId() != null) {
+                existingProduct.setCategoryId(existingCategory);
+            }
+
+            if (productDTO.getPrice() != null) {
+                existingProduct.setPrice(productDTO.getPrice());
+            }
+
+            if (productDTO.getDescription() != null) {
+                existingProduct.setDescription(productDTO.getDescription());
+            }
+
+            if (productDTO.getThumbnail() != null) {
+                existingProduct.setThumbnail(productDTO.getThumbnail());
+            }
             return productRepository.save(existingProduct);
         }
 

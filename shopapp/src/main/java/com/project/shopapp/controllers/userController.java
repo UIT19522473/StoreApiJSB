@@ -34,23 +34,23 @@ public class userController {
         }
         try {
             userService.createUser(userDTO);
-            return ResponseEntity.ok("Register successfully" + userDTO.toString());
+            return ResponseEntity.ok("Register successfully");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userLoginDTO, BindingResult result) {
-        if (result.hasErrors()) {
-            List<String> errorMessages = result.getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
-            return ResponseEntity.badRequest().body(errorMessages);
-        }
+    public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
+//        if (result.hasErrors()) {
+//            List<String> errorMessages = result.getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
+//            return ResponseEntity.badRequest().body(errorMessages);
+//        }
 
         try {
             String token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
 
-            return ResponseEntity.ok("Login successfully" + userLoginDTO.toString());
+            return ResponseEntity.ok(token);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Login is failed" + e.getMessage());
         }

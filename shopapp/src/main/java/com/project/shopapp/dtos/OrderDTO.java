@@ -44,6 +44,9 @@ public class OrderDTO {
     @JsonProperty("shipping_method")
     private String shippingMethod;
 
+    @JsonProperty("shipping_date")
+    private Date shippingDate;
+
     @JsonProperty("shipping_address")
     private String shippingAddress;
 
