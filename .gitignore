@@ -1,0 +1,32 @@
+# Spring Boot default
+/target/
+shopapp/src/main/resources/application.properties
+
+# IDE
+.idea/
+*.iml
+*.properties
+
+
+# Maven
+*.jar
+*.war
+*.ear
+*.log
+
+# Gradle
+.gradle/
+build/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+bin
+build
+.classpath
+.project
+.settings
+.idea
+
+
