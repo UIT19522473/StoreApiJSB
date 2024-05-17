@@ -33,31 +33,29 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             return;
         }
 
-            final String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                String phoneNumberExact = jwtTokenUtil.exactPhoneNumber(token);
+        final String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            String phoneNumberExact = jwtTokenUtil.exactPhoneNumber(token);
 
-                if (phoneNumberExact != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails existingUser = userDetailsService.loadUserByUsername(phoneNumberExact);
+            if (phoneNumberExact != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails existingUser = userDetailsService.loadUserByUsername(phoneNumberExact);
 
-                    if (jwtTokenUtil.validatedToken(token, existingUser)) {
-                        UsernamePasswordAuthenticationToken authenticationToken =
-                                new UsernamePasswordAuthenticationToken(
-                                        existingUser,
-                                        null,
-                                        existingUser.getAuthorities()
-                                );
-                        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                        filterChain.doFilter(request, response);
-                        return;
-                    }
+                if (jwtTokenUtil.validatedToken(token, existingUser)) {
+                    UsernamePasswordAuthenticationToken authenticationToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    existingUser,
+                                    null,
+                                    existingUser.getAuthorities()
+                            );
+                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    filterChain.doFilter(request, response);
+                    return;
                 }
-
             }
-//            System.out.println("Must be login to continue");
-//            sendUnauthorizedResponse(response, "Authorization header is missing or invalid");
+
+        }
 
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "UnAuthorize");
     }
@@ -70,10 +68,24 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private boolean isBypassToken(@Nonnull HttpServletRequest request) {
         final List<Pair<String, String>> bypassTokens = Arrays.asList(
+//                Pair.of("v3/api-docs", "GET"),
+//                Pair.of("swagger-ui/index.html", "GET"),
+                Pair.of("api/v2/test", "GET"),
                 Pair.of("api/v1/products", "GET"),
                 Pair.of("api/v1/categories", "GET"),
                 Pair.of("api/v1/users/register", "POST"),
-                Pair.of("api/v1/users/login", "POST")
+                Pair.of("api/v1/users/login", "POST"),
+//                swagger
+                Pair.of("swagger-ui/index.html", "GET"),
+                Pair.of("swagger-ui/swagger-initializer.js", "GET"),
+                Pair.of("v3/api-docs/swagger-config", "GET"),
+                Pair.of("v3/api-docs", "GET"),
+                Pair.of("swagger-ui/swagger-ui.css", "GET"),
+                Pair.of("swagger-ui/index.css", "GET"),
+                Pair.of("swagger-ui/swagger-ui-bundle.js", "GET"),
+                Pair.of("swagger-ui/swagger-ui-standalone-preset.js", "GET"),
+                Pair.of("api-docs/swagger-config", "GET"),
+                Pair.of("api-docs", "GET")
         );
 
         for (Pair<String, String> bypassToken : bypassTokens) {
